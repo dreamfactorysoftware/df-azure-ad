@@ -1,19 +1,21 @@
 <?php
 namespace DreamFactory\Core\AzureAD\Models;
 
-use DreamFactory\Core\Exceptions\BadRequestException;
+use DreamFactory\Core\Models\Role;
+use DreamFactory\Core\Models\Service;
+use DreamFactory\Core\Models\AppRoleMap;
 use DreamFactory\Core\Components\AppRoleMapper;
 use DreamFactory\Core\Models\BaseServiceConfigModel;
-use DreamFactory\Core\Models\Service;
-use DreamFactory\Core\Models\Role;
-use DreamFactory\Core\Models\AppRoleMap;
+use DreamFactory\Core\Exceptions\BadRequestException;
 
 class OAuthConfig extends BaseServiceConfigModel
 {
     use AppRoleMapper;
 
+    /** @var string */
     protected $table = 'azure_ad_config';
 
+    /** @var array */
     protected $fillable = [
         'service_id',
         'default_role',
@@ -25,10 +27,13 @@ class OAuthConfig extends BaseServiceConfigModel
         'resource',
     ];
 
+    /** @var array */
     protected $encrypted = ['client_secret'];
 
+    /** @var array */
     protected $protected = ['client_secret'];
 
+    /** @var array */
     protected $casts = [
         'service_id'   => 'integer',
         'default_role' => 'integer',

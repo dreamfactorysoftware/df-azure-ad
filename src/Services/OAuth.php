@@ -1,8 +1,8 @@
 <?php
 namespace DreamFactory\Core\AzureAD\Services;
 
-use DreamFactory\Core\AzureAD\Components\OAuthProvider;
 use DreamFactory\Core\OAuth\Services\BaseOAuthService;
+use DreamFactory\Core\AzureAD\Components\OAuthProvider;
 
 class OAuth extends BaseOAuthService
 {
