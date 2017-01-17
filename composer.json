@@ -3,7 +3,7 @@
   "description": "Azure Active Directory support for DreamFactory Platform 2.0",
   "keywords":    [
     "dreamfactory",
-    "dsp",
+    "api",
     "rest",
     "ad",
     "azure",
@@ -29,8 +29,8 @@
     "wiki":   "https://wiki.dreamfactory.com"
   },
   "require":     {
-    "dreamfactory/df-core": "~0.6.0",
-    "dreamfactory/df-oauth": "~0.6.0"
+    "dreamfactory/df-core":  "~0.7.0",
+    "dreamfactory/df-oauth": "~0.7.0"
   },
   "autoload":    {
     "psr-4": {
