@@ -3,10 +3,8 @@ namespace DreamFactory\Core\AzureAD\Models;
 
 use DreamFactory\Core\Models\Role;
 use DreamFactory\Core\Models\Service;
-use DreamFactory\Core\Models\AppRoleMap;
 use DreamFactory\Core\Components\AppRoleMapper;
 use DreamFactory\Core\Models\BaseServiceConfigModel;
-use DreamFactory\Core\Exceptions\BadRequestException;
 
 class OAuthConfig extends BaseServiceConfigModel
 {
@@ -27,16 +25,19 @@ class OAuthConfig extends BaseServiceConfigModel
         'resource',
     ];
 
-    /** @var array */
     protected $encrypted = ['client_secret'];
 
-    /** @var array */
     protected $protected = ['client_secret'];
 
-    /** @var array */
     protected $casts = [
         'service_id'   => 'integer',
         'default_role' => 'integer',
+    ];
+
+    protected $rules = [
+        'client_id'    => 'required',
+        'redirect_url' => 'required',
+        'tenant_id'    => 'required'
     ];
 
     /**
@@ -48,58 +49,23 @@ class OAuthConfig extends BaseServiceConfigModel
     }
 
     /**
-     * @param array     $config
-     * @param bool|true $create
-     *
-     * @return bool
-     * @throws \DreamFactory\Core\Exceptions\BadRequestException
-     */
-    public static function validateConfig($config, $create = true)
-    {
-        $validator = static::makeValidator($config, [
-            'client_id'    => 'required',
-            'redirect_url' => 'required',
-            'tenant_id'    => 'required'
-        ], $create);
-
-        if ($validator->fails()) {
-            $messages = $validator->messages()->getMessages();
-            throw new BadRequestException('Validation failed.', null, null, $messages);
-        }
-
-        return true;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getConfigSchema()
-    {
-        $schema = parent::getConfigSchema();
-        $schema[] = AppRoleMap::getConfigSchema();
-
-        return $schema;
-    }
-
-    /**
      * @param array $schema
      */
     protected static function prepareConfigSchemaField(array &$schema)
     {
-        $roles = Role::whereIsActive(1)->get();
-        $roleList = [];
-
-        foreach ($roles as $role) {
-            $roleList[] = [
-                'label' => $role->name,
-                'name'  => $role->id
-            ];
-        }
-
         parent::prepareConfigSchemaField($schema);
 
         switch ($schema['name']) {
             case 'default_role':
+                $roles = Role::whereIsActive(1)->get();
+                $roleList = [];
+                foreach ($roles as $role) {
+                    $roleList[] = [
+                        'label' => $role->name,
+                        'name'  => $role->id
+                    ];
+                }
+
                 $schema['type'] = 'picklist';
                 $schema['values'] = $roleList;
                 $schema['description'] = 'Select a default role for users logging in with this OAuth service type.';
