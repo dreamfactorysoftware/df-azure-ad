@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+## [0.7.0] - 2017-11-03
+- Add subscription requirements to service provider
 
 ## [0.6.0] - 2017-08-17
 ### Changed
@@ -28,7 +30,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## 0.1.0 - 2016-12-08
 First official release of this library.
 
-[Unreleased]: https://github.com/dreamfactorysoftware/df-azure-ad/compare/0.6.0...HEAD
+[Unreleased]: https://github.com/dreamfactorysoftware/df-azure-ad/compare/0.7.0...HEAD
+[0.7.0]: https://github.com/dreamfactorysoftware/df-azure-ad/compare/0.6.0...0.7.0
 [0.6.0]: https://github.com/dreamfactorysoftware/df-azure-ad/compare/0.5.0...0.6.0
 [0.5.0]: https://github.com/dreamfactorysoftware/df-azure-ad/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/dreamfactorysoftware/df-azure-ad/compare/0.3.0...0.4.0
