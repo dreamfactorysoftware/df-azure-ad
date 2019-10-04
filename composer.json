@@ -28,6 +28,8 @@
     "issues": "https://github.com/dreamfactorysoftware/df-azure-ad/issues",
     "wiki":   "https://wiki.dreamfactory.com"
   },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "require":     {
     "dreamfactory/df-oauth": "~0.14.1"
   },
