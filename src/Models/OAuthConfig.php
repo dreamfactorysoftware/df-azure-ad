@@ -91,6 +91,7 @@ class OAuthConfig extends BaseServiceConfigModel
                 break;
             case 'resource':
                 $schema['label'] = 'Resource';
+                $schema['default'] = 'https://graph.microsoft.com/';
                 $schema['description'] = 'The App ID URI of the web API (secured resource).';
                 break;
             case 'icon_class':
