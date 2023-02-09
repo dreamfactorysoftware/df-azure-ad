@@ -12,8 +12,6 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
 {
     use DfOAuthTwoProvider;
 
-    const API_VERSION = '1.6';
-
     /** @var null|string */
     protected $tokenUrl = null;
 
@@ -24,10 +22,10 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
     protected $scopes = ['User.Read'];
 
     /** @var string */
-    protected $resource = 'https://graph.windows.net/';
+    protected $resource = 'https://graph.microsoft.com/';
 
     /** @var string */
-    protected $graphUrl = 'https://graph.windows.net/';
+    protected $graphUrl = 'https://graph.microsoft.com/v1.0/me';
 
     /**
      * @param string $clientId
@@ -64,8 +62,7 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
      */
     protected function getUserByToken($token)
     {
-        $userUrl = $this->graphUrl . 'me?api-version=' . static::API_VERSION;
-        $response = $this->getHttpClient()->get($userUrl, [
+        $response = $this->getHttpClient()->get($this->graphUrl, [
             'headers' => [
                 'Authorization' => 'Bearer ' . $token
             ]
@@ -80,7 +77,7 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
     protected function mapUserToObject(array $user)
     {
         return (new User())->setRaw($user)->map([
-            'id'       => $user['objectId'],
+            'id'       => $user['id'],
             'nickname' => $user['displayName'],
             'name'     => $user['givenName'] . ' ' . $user['surname'],
             'email'    => $user['userPrincipalName'],
@@ -93,12 +90,11 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
      */
     public function getAccessTokenResponse($code)
     {
-        $postKey = (version_compare(ClientInterface::VERSION, '6') === 1) ? 'form_params' : 'body';
         $postValue = $this->getTokenFields($code);
 
         $response = $this->getHttpClient()->post($this->getTokenUrl(), [
             'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
-            $postKey  => $postValue,
+            'form_params'  => $postValue,
         ]);
 
         return json_decode($response->getBody(), true);
@@ -113,7 +109,6 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
             'client_id'     => $this->clientId,
             'scope'         => $this->formatScopes($this->getScopes(), $this->scopeSeparator),
             'response_type' => 'code',
-            'resource'      => $this->resource,
             'redirect_uri'  => $this->redirectUrl,
         ];
 
@@ -150,8 +145,8 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
      */
     public function setEndpoints($tenantId)
     {
-        $this->tokenUrl = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/token';
-        $this->authUrl = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/authorize';
+        $this->tokenUrl = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/v2.0/token';
+        $this->authUrl = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/v2.0/authorize';
     }
 
     /**

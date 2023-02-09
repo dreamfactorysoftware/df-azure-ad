@@ -3,6 +3,7 @@ namespace DreamFactory\Core\AzureAD\Services;
 
 use DreamFactory\Core\OAuth\Services\BaseOAuthService;
 use DreamFactory\Core\AzureAD\Components\OAuthProvider;
+use \Illuminate\Support\Arr;
 
 class OAuth extends BaseOAuthService
 {
@@ -11,11 +12,11 @@ class OAuth extends BaseOAuthService
     /** @inheritdoc */
     protected function setProvider($config)
     {
-        $clientId = array_get($config, 'client_id');
-        $clientSecret = array_get($config, 'client_secret');
-        $redirectUrl = array_get($config, 'redirect_url');
-        $tenantId = array_get($config, 'tenant_id');
-        $resource = array_get($config, 'resource');
+        $clientId = Arr::get($config, 'client_id');
+        $clientSecret = Arr::get($config, 'client_secret');
+        $redirectUrl = Arr::get($config, 'redirect_url');
+        $tenantId = Arr::get($config, 'tenant_id');
+        $resource = Arr::get($config, 'resource');
 
         $this->provider = new OAuthProvider($clientId, $clientSecret, $redirectUrl);
         $this->provider->setEndpoints($tenantId);
