@@ -9,9 +9,18 @@ use SocialiteProviders\Manager\OAuth2\AbstractProvider;
 use DreamFactory\Core\OAuth\Components\DfOAuthTwoProvider;
 use InvalidArgumentException;
 
-class OAuthProvider extends AbstractProvider implements ProviderInterface
+/**
+ * Class OAuthOboProvider
+ *
+ * @package DreamFactory\Core\AzureAD\Components
+ * 
+ * Implementation of Microsoft OAuth 2.0 On-Behalf-Of (OBO) flow
+ * https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow
+ */
+
+class OAuthOboProvider extends AbstractProvider implements ProviderInterface
 {
-    use DfOAuthTwoProvider;
+    use DfOAuthTwoOboProvider;
 
     /** @var null|string */
     protected $tokenUrl = null;
@@ -104,9 +113,9 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
     /**
      * {@inheritdoc}
      */
-    public function getOBOTokenResponse($token)
+    public function getDatabaseTokenResponse($token)
     {
-        $postValue = $this->getOBOTokenFields($token);
+        $postValue = $this->getDatabaseTokenFields($token);
 
         $response = $this->getHttpClient()->post($this->getTokenUrl(), [
             'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
@@ -176,7 +185,7 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
     /**
      * {@inheritdoc}
      */
-    protected function getOBOTokenFields($token)
+    protected function getDatabaseTokenFields($token)
     {
         if (empty($this->clientSecret)) {
             throw new InvalidArgumentException('The client secret is required for on-behalf-of token request.');
