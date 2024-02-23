@@ -12,7 +12,6 @@ class CreateAzureAdConfigTable extends Migration
      */
     public function up()
     {
-        // @todo: create new migration for obo config
         Schema::create(
             'azure_ad_config',
             function (Blueprint $t){
