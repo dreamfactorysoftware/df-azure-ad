@@ -7,7 +7,6 @@ use SocialiteProviders\Manager\OAuth2\User;
 use Laravel\Socialite\Two\ProviderInterface;
 use SocialiteProviders\Manager\OAuth2\AbstractProvider;
 use DreamFactory\Core\OAuth\Components\DfOAuthTwoProvider;
-use InvalidArgumentException;
 
 class OAuthProvider extends AbstractProvider implements ProviderInterface
 {
@@ -91,37 +90,7 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
      */
     public function getAccessTokenResponse($code)
     {
-        $postValue = $this->getClientTokenFields($code);
-
-        $response = $this->getHttpClient()->post($this->getTokenUrl(), [
-            'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
-            'form_params'  => $postValue,
-        ]);
-
-        return json_decode($response->getBody(), true);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getOBOTokenResponse($token)
-    {
-        $postValue = $this->getOBOTokenFields($token);
-
-        $response = $this->getHttpClient()->post($this->getTokenUrl(), [
-            'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
-            'form_params'  => $postValue,
-        ]);
-
-        return json_decode($response->getBody(), true);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getGraphTokenResponse($token)
-    {
-        $postValue = $this->getGraphTokenFields($token);
+        $postValue = $this->getTokenFields($code);
 
         $response = $this->getHttpClient()->post($this->getTokenUrl(), [
             'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
@@ -138,8 +107,7 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
     {
         $fields = [
             'client_id'     => $this->clientId,
-            // 'scope'         => $this->formatScopes($this->getScopes(), $this->scopeSeparator),
-            'scope'         => 'api://1c67c816-1925-4b1a-a2e2-85e243857f83/user_impersonation',
+            'scope'         => $this->formatScopes($this->getScopes(), $this->scopeSeparator),
             'response_type' => 'code',
             'redirect_uri'  => $this->redirectUrl,
         ];
@@ -154,71 +122,20 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
     /**
      * {@inheritdoc}
      */
-    protected function getClientTokenFields($code)
+    protected function getTokenFields($code)
     {
         $fields = [
             'grant_type'   => 'authorization_code',
-            // 'client_id'    => $this->clientId,
-            // @todo: replace with real values
-            'client_id'    => '1c67c816-1925-4b1a-a2e2-85e243857f83',
-            'client_secret'    => 'EN28Q~tCzLkxueZnF6~7jDEtySRcpNvNDcm2mb5O',
+            'client_id'    => $this->clientId,
             'code'         => $code,
             'redirect_uri' => $this->redirectUrl,
         ];
 
-        // if (!empty($this->clientSecret)) {
-        //     $fields['client_secret'] = $this->clientSecret;
-        // }
+        if (!empty($this->clientSecret)) {
+            $fields['client_secret'] = $this->clientSecret;
+        }
 
         return $fields;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function getOBOTokenFields($token)
-    {
-        if (empty($this->clientSecret)) {
-            throw new InvalidArgumentException('The client secret is required for on-behalf-of token request.');
-        }else{
-            $fields = [
-                'grant_type'    => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                // @todo: replace with real values
-                'client_id'     => '1c67c816-1925-4b1a-a2e2-85e243857f83',
-                'client_secret' => 'EN28Q~tCzLkxueZnF6~7jDEtySRcpNvNDcm2mb5O',
-                'assertion'     => $token,
-                // not sure about this value for scopes, revisit if there are problems
-                // currently has User.Read, might need to look at scopes in Entra dashboard
-                // @todo: replace with service config value
-                'scope'         => 'api://6ced452b-3e9a-47a5-b440-b860bbd926a0/user_impersonation',
-                'requested_token_use' => 'on_behalf_of',
-            ];
-
-            return $fields;
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function getGraphTokenFields($token)
-    {
-        if (empty($this->clientSecret)) {
-            throw new InvalidArgumentException('The client secret is required for on-behalf-of token request.');
-        }else{
-            $fields = [
-                'grant_type'    => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                'client_id'     => '1c67c816-1925-4b1a-a2e2-85e243857f83',
-                'client_secret' => 'EN28Q~tCzLkxueZnF6~7jDEtySRcpNvNDcm2mb5O',
-                'assertion'     => $token,
-                // not sure about this value for scopes, revisit if there are problems
-                // currently has User.Read, might need to look at scopes in Entra dashboard
-                'scope'         => $this->formatScopes($this->getScopes(), $this->scopeSeparator),
-                'requested_token_use' => 'on_behalf_of',
-            ];
-
-            return $fields;
-        }
     }
 
     /**

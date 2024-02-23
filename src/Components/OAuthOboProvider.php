@@ -6,7 +6,7 @@ use GuzzleHttp\ClientInterface;
 use SocialiteProviders\Manager\OAuth2\User;
 use Laravel\Socialite\Two\ProviderInterface;
 use SocialiteProviders\Manager\OAuth2\AbstractProvider;
-use DreamFactory\Core\OAuth\Components\DfOAuthTwoProvider;
+use DreamFactory\Core\OAuth\Components\DfOAuthTwoOboProvider;
 use InvalidArgumentException;
 
 /**
@@ -36,6 +36,12 @@ class OAuthOboProvider extends AbstractProvider implements ProviderInterface
 
     /** @var string */
     protected $graphUrl = 'https://graph.microsoft.com/v1.0/me';
+
+    /** @var null|string */
+    protected $clientResourceScope = null;
+
+    /** @var null|string */
+    protected $apiResourceScope = null;
 
     /**
      * @param string $clientId
@@ -147,8 +153,7 @@ class OAuthOboProvider extends AbstractProvider implements ProviderInterface
     {
         $fields = [
             'client_id'     => $this->clientId,
-            // 'scope'         => $this->formatScopes($this->getScopes(), $this->scopeSeparator),
-            'scope'         => 'api://1c67c816-1925-4b1a-a2e2-85e243857f83/user_impersonation',
+            'scope'         => $this->clientResourceScope,
             'response_type' => 'code',
             'redirect_uri'  => $this->redirectUrl,
         ];
@@ -167,17 +172,11 @@ class OAuthOboProvider extends AbstractProvider implements ProviderInterface
     {
         $fields = [
             'grant_type'   => 'authorization_code',
-            // 'client_id'    => $this->clientId,
-            // @todo: replace with real values
-            'client_id'    => '1c67c816-1925-4b1a-a2e2-85e243857f83',
-            'client_secret'    => 'EN28Q~tCzLkxueZnF6~7jDEtySRcpNvNDcm2mb5O',
+            'client_id'    => $this->clientId,
+            'client_secret'    => $this->clientSecret,
             'code'         => $code,
             'redirect_uri' => $this->redirectUrl,
         ];
-
-        // if (!empty($this->clientSecret)) {
-        //     $fields['client_secret'] = $this->clientSecret;
-        // }
 
         return $fields;
     }
@@ -192,14 +191,10 @@ class OAuthOboProvider extends AbstractProvider implements ProviderInterface
         }else{
             $fields = [
                 'grant_type'    => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                // @todo: replace with real values
-                'client_id'     => '1c67c816-1925-4b1a-a2e2-85e243857f83',
-                'client_secret' => 'EN28Q~tCzLkxueZnF6~7jDEtySRcpNvNDcm2mb5O',
+                'client_id'    => $this->clientId,
+                'client_secret'    => $this->clientSecret,
                 'assertion'     => $token,
-                // not sure about this value for scopes, revisit if there are problems
-                // currently has User.Read, might need to look at scopes in Entra dashboard
-                // @todo: replace with service config value
-                'scope'         => 'api://6ced452b-3e9a-47a5-b440-b860bbd926a0/user_impersonation',
+                'scope'         => $this->apiResourceScope,
                 'requested_token_use' => 'on_behalf_of',
             ];
 
@@ -217,11 +212,9 @@ class OAuthOboProvider extends AbstractProvider implements ProviderInterface
         }else{
             $fields = [
                 'grant_type'    => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                'client_id'     => '1c67c816-1925-4b1a-a2e2-85e243857f83',
-                'client_secret' => 'EN28Q~tCzLkxueZnF6~7jDEtySRcpNvNDcm2mb5O',
+                'client_id'    => $this->clientId,
+                'client_secret'    => $this->clientSecret,
                 'assertion'     => $token,
-                // not sure about this value for scopes, revisit if there are problems
-                // currently has User.Read, might need to look at scopes in Entra dashboard
                 'scope'         => $this->formatScopes($this->getScopes(), $this->scopeSeparator),
                 'requested_token_use' => 'on_behalf_of',
             ];
@@ -249,6 +242,17 @@ class OAuthOboProvider extends AbstractProvider implements ProviderInterface
     public function setResource($resource)
     {
         $this->resource = $resource;
+    }
+
+    /**
+     * Sets the OAuth 2 OBO resource scopes
+     *
+     * @param $resource
+     */
+    public function setResourceScopes($clientResourceScope, $apiResourceScope)
+    {
+        $this->clientResourceScope = $clientResourceScope;
+        $this->apiResourceScope = $apiResourceScope;
     }
 
 }

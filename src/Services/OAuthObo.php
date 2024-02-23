@@ -16,11 +16,15 @@ class OAuthObo extends BaseOAuthService
         $clientSecret = Arr::get($config, 'client_secret');
         $redirectUrl = Arr::get($config, 'redirect_url');
         $tenantId = Arr::get($config, 'tenant_id');
-        $resource = Arr::get($config, 'resource');
+        $userResource = Arr::get($config, 'user_resource');
+        $clientResourceScope = Arr::get($config, 'client_resource_scope');
+        $apiResourceScope = Arr::get($config, 'api_resource_scope');
+
 
         $this->provider = new OAuthOboProvider($clientId, $clientSecret, $redirectUrl);
         $this->provider->setEndpoints($tenantId);
-        $this->provider->setResource($resource);
+        $this->provider->setResource($userResource);
+        $this->provider->setResourceScopes($clientResourceScope, $apiResourceScope);
     }
 
     /** @inheritdoc */
