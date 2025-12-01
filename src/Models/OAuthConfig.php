@@ -23,6 +23,7 @@ class OAuthConfig extends BaseServiceConfigModel
         'icon_class',
         'tenant_id',
         'resource',
+        'map_group_to_role',
     ];
 
     protected $encrypted = ['client_secret'];
@@ -30,8 +31,9 @@ class OAuthConfig extends BaseServiceConfigModel
     protected $protected = ['client_secret'];
 
     protected $casts = [
-        'service_id'   => 'integer',
-        'default_role' => 'integer',
+        'service_id'        => 'integer',
+        'default_role'      => 'integer',
+        'map_group_to_role' => 'boolean',
     ];
 
     protected $rules = [
@@ -46,6 +48,91 @@ class OAuthConfig extends BaseServiceConfigModel
     public function service()
     {
         return $this->belongsTo(Service::class, 'service_id', 'id');
+    }
+
+    /**
+     * Get config with group role mappings
+     *
+     * @param int $id
+     * @param mixed $local_config
+     * @param bool $protect
+     * @return array|null
+     */
+    public static function getConfig($id, $local_config = null, $protect = true)
+    {
+        $config = parent::getConfig($id, $local_config, $protect);
+
+        if ($config) {
+            // Include group role mappings
+            $groupRoleMaps = RoleAzureAD::where('role_id', '>', 0)->get();
+            $config['group_role_map'] = [];
+
+            foreach ($groupRoleMaps as $map) {
+                $config['group_role_map'][] = [
+                    'role_id' => $map->role_id,
+                    'group_name' => $map->group_name,
+                ];
+            }
+        }
+
+        return $config;
+    }
+
+    /**
+     * Set config with group role mappings
+     *
+     * @param int $id
+     * @param array $config
+     * @param mixed $local_config
+     * @return array
+     */
+    public static function setConfig($id, $config, $local_config = null)
+    {
+        // Extract group role map if present
+        $groupRoleMap = array_get($config, 'group_role_map', []);
+        unset($config['group_role_map']);
+
+        // Save main config
+        $result = parent::setConfig($id, $config, $local_config);
+
+        // Update group role mappings
+        if (isset($groupRoleMap)) {
+            // Delete existing mappings
+            RoleAzureAD::query()->delete();
+
+            // Create new mappings
+            foreach ($groupRoleMap as $map) {
+                if (!empty($map['role_id']) && !empty($map['group_name'])) {
+                    RoleAzureAD::create([
+                        'role_id' => $map['role_id'],
+                        'group_name' => $map['group_name'],
+                    ]);
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getConfigSchema()
+    {
+        $schema = parent::getConfigSchema();
+
+        // Add group role mapping field
+        $schema[] = [
+            'name'        => 'group_role_map',
+            'label'       => 'Entra ID Group to Role Mapping',
+            'description' => 'Map Entra ID (Azure AD) group memberships to DreamFactory roles. When enabled, users will be assigned roles based on their group membership.',
+            'type'        => 'array',
+            'required'    => false,
+            'allow_null'  => true,
+            'items'       => RoleAzureAD::getConfigSchema(),
+        ];
+
+        return $schema;
     }
 
     /**
@@ -96,6 +183,10 @@ class OAuthConfig extends BaseServiceConfigModel
                 break;
             case 'icon_class':
                 $schema['description'] = 'The icon to display for this OAuth service.';
+                break;
+            case 'map_group_to_role':
+                $schema['label'] = 'Map Entra ID Groups to Roles';
+                $schema['description'] = 'Enable mapping of Entra ID (Azure AD) group memberships to DreamFactory roles.';
                 break;
         }
     }
