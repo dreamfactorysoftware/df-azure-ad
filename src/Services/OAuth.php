@@ -124,23 +124,31 @@ class OAuth extends BaseOAuthService
             $roleToApply = $this->getRoleByGroup($groups);
         }
 
-        // Apply the role with appropriate scope
+        // If no group-based role found, check fallbacks
+        if (empty($roleToApply)) {
+            if (!empty($serviceId = $this->getServiceId())) {
+                // Check if there are app-specific role mappings
+                // Note: applyAppRoleMapByService handles its own logic
+            }
+
+            // Fall back to default role if no group match
+            if (empty($roleToApply) && !empty($defaultRole = $this->getDefaultRole())) {
+                $roleToApply = $defaultRole;
+            }
+        }
+
+        // Always refresh role assignments on login to reflect current group membership
         if (!empty($roleToApply)) {
-            // Group-based role found - apply to all apps
+            // Clear existing role assignments for this user
+            \DB::table('user_to_app_to_role')->where('user_id', $user->id)->delete();
+
+            // Re-apply the current role based on latest group membership
             User::applyDefaultUserAppRole($user, $roleToApply);
         } elseif (!empty($serviceId = $this->getServiceId())) {
-            // No group mapping, check app-specific roles
+            // No group mapping, use app-specific roles
+            // Clear and re-apply to ensure they're current
+            \DB::table('user_to_app_to_role')->where('user_id', $user->id)->delete();
             User::applyAppRoleMapByService($user, $serviceId);
-
-            // If no app-specific roles, fall back to default role
-            if (empty($defaultRole = $this->getDefaultRole())) {
-                // Do nothing if no default role
-            } else {
-                User::applyDefaultUserAppRole($user, $defaultRole);
-            }
-        } elseif (!empty($defaultRole = $this->getDefaultRole())) {
-            // Fall back to default role if no other mapping exists
-            User::applyDefaultUserAppRole($user, $defaultRole);
         }
 
         return $user;
