@@ -22,6 +22,9 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
     protected $scopes = ['User.Read', 'GroupMember.Read.All'];
 
     /** @var string */
+    protected $scopeSeparator = ' ';
+
+    /** @var string */
     protected $resource = 'https://graph.microsoft.com/';
 
     /** @var string */
