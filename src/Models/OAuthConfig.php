@@ -8,7 +8,9 @@ use DreamFactory\Core\Models\BaseServiceConfigModel;
 
 class OAuthConfig extends BaseServiceConfigModel
 {
-    use AppRoleMapper;
+    use AppRoleMapper {
+        getConfigSchema as protected getAppRoleMapperSchema;
+    }
 
     /** @var string */
     protected $table = 'azure_ad_config';
@@ -119,7 +121,8 @@ class OAuthConfig extends BaseServiceConfigModel
      */
     public static function getConfigSchema()
     {
-        $schema = parent::getConfigSchema();
+        // Get schema from AppRoleMapper trait (includes app_role_map)
+        $schema = static::getAppRoleMapperSchema();
 
         // Add group role mapping field
         $schema[] = [
