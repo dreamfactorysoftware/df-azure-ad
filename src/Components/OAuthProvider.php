@@ -19,7 +19,10 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
     protected $authUrl = null;
 
     /** @var array */
-    protected $scopes = ['User.Read'];
+    protected $scopes = ['User.Read', 'GroupMember.Read.All'];
+
+    /** @var string */
+    protected $scopeSeparator = ' ';
 
     /** @var string */
     protected $resource = 'https://graph.microsoft.com/';
@@ -68,7 +71,55 @@ class OAuthProvider extends AbstractProvider implements ProviderInterface
             ]
         ]);
 
-        return json_decode($response->getBody()->getContents(), true);
+        $user = json_decode($response->getBody()->getContents(), true);
+
+        // Fetch user's group memberships
+        $user['groups'] = $this->getUserGroups($token);
+
+        return $user;
+    }
+
+    /**
+     * Get user's group memberships from Microsoft Graph
+     *
+     * @param string $token
+     * @return array
+     */
+    protected function getUserGroups($token)
+    {
+        try {
+            $response = $this->getHttpClient()->get(
+                'https://graph.microsoft.com/v1.0/me/memberOf',
+                [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $token
+                    ]
+                ]
+            );
+
+            $data = json_decode($response->getBody()->getContents(), true);
+
+            // Extract group display names from the response
+            $groups = [];
+            if (isset($data['value']) && is_array($data['value'])) {
+                foreach ($data['value'] as $member) {
+                    // Only include groups (not directory roles or other objects)
+                    if (isset($member['@odata.type']) && $member['@odata.type'] === '#microsoft.graph.group') {
+                        $groups[] = [
+                            'id' => $member['id'] ?? null,
+                            'displayName' => $member['displayName'] ?? null,
+                        ];
+                    }
+                }
+            }
+
+            return $groups;
+        } catch (\Exception $e) {
+            // If group fetching fails, return empty array
+            // This allows authentication to continue even if group API fails
+            \Log::warning('Failed to fetch Azure AD groups: ' . $e->getMessage());
+            return [];
+        }
     }
 
     /**
