@@ -10,6 +10,8 @@ class OAuthConfig extends BaseServiceConfigModel
 {
     use AppRoleMapper {
         getConfigSchema as protected getAppRoleMapperSchema;
+        getConfig as protected getAppRoleMapperConfig;
+        setConfig as protected setAppRoleMapperConfig;
     }
 
     /** @var string */
@@ -62,7 +64,7 @@ class OAuthConfig extends BaseServiceConfigModel
      */
     public static function getConfig($id, $local_config = null, $protect = true)
     {
-        $config = parent::getConfig($id, $local_config, $protect);
+        $config = static::getAppRoleMapperConfig($id, $local_config, $protect);
 
         if ($config) {
             // Include group role mappings
@@ -94,8 +96,8 @@ class OAuthConfig extends BaseServiceConfigModel
         $groupRoleMap = array_get($config, 'group_role_map', []);
         unset($config['group_role_map']);
 
-        // Save main config
-        $result = parent::setConfig($id, $config, $local_config);
+        // Save main config (via trait, which also handles app_role_map)
+        $result = static::setAppRoleMapperConfig($id, $config, $local_config);
 
         // Update group role mappings
         if (isset($groupRoleMap)) {
