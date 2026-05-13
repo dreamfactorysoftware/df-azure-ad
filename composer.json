@@ -33,7 +33,7 @@
   "require":     {
     "php": "^8.3",
     "laravel/helpers": "^1.8",
-    "dreamfactory/df-oauth": "~0.16"
+    "dreamfactory/df-oauth": "~1.0"
   },
   "require-dev": {
     "laravel/framework": "^13.7",
